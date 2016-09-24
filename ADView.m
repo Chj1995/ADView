@@ -24,7 +24,14 @@
 @end
 @implementation ADView
 #pragma mark - 懒加载
-
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if (self) {
+        _ADDataSource = [NSMutableArray array];
+    }
+    return self;
+}
 -(UICollectionView *)ADCollectionView
 {
     if (!_ADCollectionView) {
@@ -36,6 +43,7 @@
         
         //设置Cell的大小
         layout.itemSize = self.frame.size;
+        
         //清空行距
         layout.minimumLineSpacing = 0;
         
@@ -73,17 +81,18 @@
     pageControl = [[UIPageControl alloc]init];
     pageControl.frame = CGRectMake(0, self.frame.size.height - 20, self.frame.size.width, 20);
     pageControl.tag = 1000;
-    pageControl.numberOfPages = _ADDataSource.count;
+    pageControl.numberOfPages = _ADDataSource.count - 1;
     pageControl.pageIndicatorTintColor = [UIColor blackColor];
     pageControl.currentPageIndicatorTintColor = [UIColor whiteColor];
     [self addSubview:pageControl];
 }
 
 #pragma mark - setter方法
--(void)setADDataSource:(NSArray *)ADDataSource
+-(void)setADDataSource:(NSMutableArray *)ADDataSource
 {
     _ADDataSource = ADDataSource;
-
+    
+    [_ADDataSource addObject:ADDataSource.firstObject];
     //1.刷新
     [self.ADCollectionView reloadData];
     //2.创建页数
@@ -101,7 +110,7 @@
 {
     num++;
     
-    if (num >= _ADDataSource.count)
+    if (num >= _ADDataSource.count - 1)
     {
         num = 0;
         //当滚动到最后一张图片时，回滚到开头不采用动画
@@ -112,10 +121,10 @@
         [self scrollToItem:num animated:YES];
     }
 }
+
 #pragma mark - 滚动到指定的图片
 -(void)scrollToItem:(NSInteger)index animated:(BOOL)animated
 {
-    pageControl.currentPage = index;
     NSIndexPath *indexPath = [NSIndexPath indexPathForRow:index inSection:0];
     [self.ADCollectionView scrollToItemAtIndexPath:indexPath atScrollPosition:UICollectionViewScrollPositionNone animated:animated];
 }
@@ -138,10 +147,22 @@
     
     return cell;
 }
+
 #pragma mark - 滚动时会触发
 -(void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
+    CGPoint offset = self.ADCollectionView.contentOffset;
     
+    NSInteger page = offset.x / CGRectGetWidth(self.ADCollectionView.frame);
+    
+    pageControl.currentPage = page;
+    
+    num = page;
+    
+    if (page >= _ADDataSource.count - 1)
+    {
+        [self scrollToItem:0 animated:NO];
+    }
 }
 
 @end

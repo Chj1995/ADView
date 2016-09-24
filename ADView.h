@@ -10,6 +10,6 @@
 
 @interface ADView : UIView
 
-@property(nonatomic,strong)NSArray *ADDataSource;
+@property(nonatomic,strong)NSMutableArray *ADDataSource;
 
 @end
